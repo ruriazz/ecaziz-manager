@@ -5,7 +5,8 @@ $config = array(
     'autoload' => array(
         'helpers' => array(
             'assets_helper',
-            'view_helper'
+            'view_helper',
+            'script_helper'
         ),
     )
 );
