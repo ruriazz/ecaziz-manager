@@ -1,7 +1,7 @@
 <?php
 
 $config = array(
-    'base_url' => 'http://localhost:8081/',
+    'base_url' => 'http://192.168.6.26:8082/',
     'autoload' => array(
         'helpers' => array(
             'assets_helper',

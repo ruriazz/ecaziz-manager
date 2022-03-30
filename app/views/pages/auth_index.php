@@ -30,21 +30,23 @@
     <title><?php if (isset($view_data->page_title)) echo $view_data->page_title; ?></title>
 </head>
 
-<body id="kt_body" class="auth-bg">
+<body style="display: none" id="kt_body" class="auth-bg">
+    <?php _load_view('template/page_loader'); ?>
+
     <div class="d-flex flex-column flex-root">
         <div class="d-flex flex-center flex-column flex-column-fluid">
             <div class="w-lg-500px p-10 p-lg-15 mx-auto">
-                <form class="form w-100">
+                <form class="form w-100" id="auth-form">
                     <div class="text-center mb-10">
                         <h1 class="text-dark mb-3">Sign In to manager</h1>
                     </div>
                     <div class="fv-row mb-10">
                         <label class="form-label fs-6 fw-bolder text-dark">Username</label>
-                        <input class="form-control form-control-lg form-control-solid" type="text" autocomplete="off" />
+                        <input class="form-control form-control-lg form-control-solid" type="text" id="input-username" autocomplete="off" required />
                     </div>
                     <div class="fv-row mb-10">
                         <label class="form-label fw-bolder text-dark fs-6 mb-0">Password</label>
-                        <input class="form-control form-control-lg form-control-solid" type="password" autocomplete="off" />
+                        <input class="form-control form-control-lg form-control-solid" type="password" id="input-password" autocomplete="off" required />
                     </div>
                     <div class="text-center">
                         <button type="submit" id="kt_sign_in_submit" class="btn btn-lg btn-primary w-100 mb-5">

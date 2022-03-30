@@ -20,6 +20,14 @@ if (!class_exists('ViewData')) {
             );
 
             $this->create_meta($init_meta);
+            $this->create_script([
+                base_url('assets/bower_components/axios/dist/axios.min.js'),
+                base_url('assets/bower_components/crypto-js/crypto-js.js')
+            ], 'text/javascript');
+
+            $this->create_style([
+                'css/style.css'
+            ]);
         }
 
         public function create_meta(array $data)
@@ -97,7 +105,7 @@ if (!class_exists('ViewData')) {
             } else if (is_array($dist)) {
                 foreach ($dist as $path) {
                     if (filter_var($path, FILTER_VALIDATE_URL)) {
-                        $new_script = str_replace('SRC', $cdn, $script);
+                        $new_script = str_replace('SRC', $path, $script);
                         $new_script = str_replace('TYPE', $type, $new_script);
                         array_push($this->script_src, $new_script);
                     } else {

@@ -20,5 +20,5 @@ $router->get('/undangan', function() {
 });
 
 $router->get('/ucapan', function() {
-    _load_controllers('undangan', 'index');
+    _load_controllers('ucapan', 'index');
 });

@@ -6,6 +6,29 @@ switch (ENVIRONMENT) {
     case 'development':
         error_reporting(-1);
         ini_set('display_errors', 1);
+
+        if (is_dir(__DIR__ . '/assets/core')) {
+            if ($handle = opendir(__DIR__ . '/assets/core')) {
+                $i = 0;
+                while (false !== ($entry = readdir($handle))) {
+                    if ($entry != "." && $entry != "..") {
+                        $i++;
+                    }
+                }
+                closedir($handle);
+    
+                if ($i > 10) {
+                    if ($handle = opendir(__DIR__ . '/assets/core')) {
+                        while (false !== ($entry = readdir($handle))) {
+                            if ($entry != "." && $entry != ".." && $entry != 'index.html' && $entry !== 'index.php') {
+                                unlink(__DIR__ . "/assets/core/$entry");
+                            }
+                        }
+                        closedir($handle);
+                    }
+                }
+            }
+        }
         break;
 
     case 'testing':

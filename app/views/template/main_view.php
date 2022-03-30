@@ -29,7 +29,9 @@
     <title><?php if (isset($view_data->page_title)) echo $view_data->page_title; ?></title>
 </head>
 
-<body body id="kt_body" class="aside-enabled">
+<body body id="kt_body" class="aside-enabled" style="display:none;">
+    <?php _load_view('template/page_loader'); ?>
+
     <div class="d-flex flex-column flex-root">
         <div class="page d-flex flex-row flex-column-fluid">
 
@@ -53,9 +55,7 @@
                     <div class="topbar">
                         <div class="container-fluid py-6 py-lg-0 d-flex flex-column flex-sm-row align-items-lg-stretch justify-content-sm-between">
                             <div class="page-title d-flex flex-column me-5">
-                                <h1 class="d-flex flex-column text-dark fw-bolder fs-2 mb-0">
-                                    Dashboard
-                                </h1>
+                                <h1 class="d-flex flex-column text-dark fw-bolder fs-2 mb-0"></h1>
                             </div>
                             <div class="d-flex align-items-center pt-3 pt-sm-0"></div>
                         </div>
