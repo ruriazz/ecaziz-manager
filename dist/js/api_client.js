@@ -1,5 +1,5 @@
 class APIClient {
-    #BASEURL = 'http://192.168.6.26:8081';
+    #BASEURL = 'https://api.ecaaziz.link';
     #METHOD = ['GET', 'POST', 'PUT', 'PATCH', 'OPTIONS', 'DELETE']
 
     static async getInstance() {

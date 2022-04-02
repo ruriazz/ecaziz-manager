@@ -33,7 +33,7 @@ class App {
     async pageAuth() {
         if (typeof this.isAuth !== undefined && this.isAuth == true) {
             const userData = await this.session.get('user_data');
-            console.log(userData);
+            
             $('#user-name').html(userData.name);
             $('#username').html(userData.username);
 
@@ -61,11 +61,10 @@ class App {
         window.location.reload();
     }
 
-    buildWhatsappMessage(undangan) {
-        console.log(undangan);
+    buildWhatsappMessage(undangan, encode = true) {
         let relationHeader = undangan.person_type.split('&lt;|&gt;')[0].trim();
         let relationBody = undangan.person_type.split('&lt;|&gt;')[1].trim();
-        let messageBody = `_Assalamualaikum warahmatullahi wabarakatuh._\n\nYth.\n:HEAD_RELATION: *:NAME:*\ndi :LOCATION:\n\n_Bismillahirahmanirrahim._\nDengan memohon Ridho dan Rahmat Allah SWT, tanpa mengurangi rasa hormat, perkenankan kami menginformasikan kabar baik kepada :RELATION: perihal acara pernikahan kami.\n\n*Elsya Arystin Ningroem* dan *Aziz Ruri Suparman*\n\nBerikut link untuk info lengkap dari acara kami :\n:URL:\n\nMerupakan suatu kebahagiaan bagi kami apabila :RELATION: dapat memberikan doa dan restu untuk mengiringi niat tulus kami, sehingga pernikahan kami senantiasa dalam ridho dan rahmat Allah Subhanahu Wa Ta'ala. _Aamiin Yaa Rabbal Aalamin._\n\nTerima Kasih,\n_Wassalamualaikum warahmatullahi wabarakatuh._`;
+        let messageBody = `_Assalamualaikum warahmatullahi wabarakatuh._\n\nYth.\n:HEAD_RELATION: *:NAME:*\ndi :LOCATION:\n\n_Bismillahirahmanirrahim._\nDengan memohon Ridho dan Rahmat Allah SWT, tanpa mengurangi rasa hormat, perkenankan kami menginformasikan kabar baik kepada :RELATION: perihal acara pernikahan kami.\n\n*${app_config.BRIDE.capitalize()}*\n                 _dan_ \n  *${app_config.GROOM.capitalize()}*\n\nBerikut link untuk info lengkap dari acara kami :\n:URL:\n\nMerupakan suatu kebahagiaan bagi kami apabila :RELATION: dapat memberikan doa dan restu untuk mengiringi niat tulus kami, sehingga pernikahan kami senantiasa dalam ridho dan rahmat Allah Subhanahu Wa Ta'ala. _Aamiin Yaa Rabbal Aalamin._\n\nTerima Kasih,\n_Wassalamualaikum warahmatullahi wabarakatuh._`;
         let name = undangan.person_name.capitalize();
         let location = undangan.person_location.capitalize();
         let url = undangan.link.replaceAll('BASE_URL', app_config.BASE_URL);
@@ -75,7 +74,9 @@ class App {
         messageBody = messageBody.replaceAll(':NAME:', name);
         messageBody = messageBody.replaceAll(':LOCATION:', location);
         messageBody = messageBody.replaceAll(':URL:', url);
-        messageBody = encodeURIComponent(messageBody);
+
+        if (encode)
+            messageBody = encodeURIComponent(messageBody);
 
         return messageBody;
     }
@@ -87,6 +88,37 @@ class App {
 
         // window.location.href = `whatsapp://send?${params}`;
         window.open(`whatsapp://send?${params}`, "_blank") || window.location.replace(`whatsapp://send?${params}`);
+    }
+
+    copyTextToClipboard(e, { target: t = document.body } = {}) {
+        const n = document.createElement("textarea"),
+            o = document.activeElement;
+        n.value = e, n.setAttribute("readonly", ""), n.style.contain = "strict", n.style.position = "absolute", n.style.left = "-9999px", n.style.fontSize = "12pt";
+        const c = document.getSelection(),
+            a = c.rangeCount > 0 && c.getRangeAt(0);
+        t.append(n), n.select(), n.selectionStart = 0, n.selectionEnd = e.length;
+        let l = !1;
+        try {
+            l = document.execCommand("copy")
+        } catch { }
+        return n.remove(), a && (c.removeAllRanges(), c.addRange(a)), o && o.focus(), l
+    }
+
+    showSnackbar({text = 'default snackbar text', timeout = 1000, onShow = function(){}, onHide = function(){}} = {}) {
+        $('#snackbar').remove();
+        $('body').append(`<div id="snackbar">${text}</div>`);
+        const snackbar = $('#snackbar');
+        snackbar.addClass('show');
+        if(typeof onShow == 'function')
+            onShow();
+
+        setTimeout(function(){
+            snackbar.fadeOut(function() {
+                $(this).remove();
+                if(typeof onHide == 'function')
+                    onHide();
+            });
+        }, timeout);
     }
 
     showLoader(func = undefined) {
@@ -101,6 +133,7 @@ class App {
         `;
 
         $('body').append(loader);
+        $('body').css('overflow', 'hidden');
         $('#loader').fadeIn('fast', function () {
             if (typeof func == 'function')
                 func();
@@ -111,6 +144,7 @@ class App {
         const loader = $('#loader');
         const style = $('#loader-style');
         loader.fadeOut('slow', function () {
+            $('body').css('overflow', '');
             loader.remove();
             style.remove();
             if (typeof func == 'function')
@@ -222,7 +256,7 @@ class App {
         const phoneNumber = $('#input-phone-number');
         const statusUndangan = $('#is-active-undangan');
 
-        const relation = `${inputRelationHeader.val().length > 0 ? inputRelationHeader.val().trim() : 'Bapak/Ibu Saudara/i'}<|>${inputRelationBody.val().length > 0 ? inputRelationBody.val().trim() : 'Bapak/Ibu Saudara/i'}`;
+        const relation = `${inputRelationHeader.val().length > 0 ? inputRelationHeader.val().trim() : undanganType == 'O' ? 'Bapak/Ibu' : 'Bapak/Ibu Saudara/i'}<|>${inputRelationBody.val().length > 0 ? inputRelationBody.val().trim() : undanganType == 'O' ? 'Bapak/Ibu' : 'Bapak/Ibu Saudara/i'}`;
 
         const validateData = () => {
             const result = {
@@ -242,7 +276,7 @@ class App {
             let apiResponse;
             let isNew = true;
 
-            if(submitType == 'new') {
+            if (submitType == 'new') {
                 apiResponse = await $this.api.fetch({
                     method: 'POST',
                     path: '/undangan/',
@@ -260,7 +294,6 @@ class App {
             if (apiResponse.success) {
                 const alert = $this.buildAlertUndanganCreated(apiResponse.content, isNew);
                 const modalForm = '#kt_modal_create_undangan';
-                console.log(alert);
 
                 $this.hideLoader(() => {
                     $(modalForm).modal('hide');
@@ -346,7 +379,7 @@ class App {
 
         $(`#modal-alert-created_${undangan.id}`).on('hidden.bs.modal', (e) => {
             $(this).remove();
-            if($this.currentPath == '/undangan') {
+            if ($this.currentPath == '/undangan') {
                 window.location.reload();
             }
         });
@@ -354,9 +387,9 @@ class App {
         return `#modal-alert-created_${undangan.id}`;
     }
 
-    copyTextToClipboard(text) {
+    copyTextToClipboard(text, onCopied = function(success){}) {
         const fallbackCopyTextToClipboard = (text) => {
-            var textArea = document.createElement("textarea");
+            const textArea = document.createElement("textarea");
             textArea.value = text;
 
             textArea.style.top = "0";
@@ -368,11 +401,12 @@ class App {
             textArea.select();
 
             try {
-                var successful = document.execCommand('copy');
-                var msg = successful ? 'successful' : 'unsuccessful';
-                console.log('Fallback: Copying text command was ' + msg);
+                const successful = document.execCommand('copy');
+                if(successful && typeof onCopied == 'function')
+                    onCopied(successful);
             } catch (err) {
-                console.error('Fallback: Oops, unable to copy', err);
+                if(typeof onCopied == 'function')
+                    onCopied(false);
             }
 
             document.body.removeChild(textArea);
@@ -384,9 +418,11 @@ class App {
         }
 
         navigator.clipboard.writeText(text).then(function () {
-            console.log('Async: Copying to clipboard was successful!');
+            if(typeof onCopied == 'function')
+                onCopied(true);
         }, function (err) {
-            console.error('Async: Could not copy text: ', err);
+            if(typeof onCopied == 'function')
+                onCopied(false);
         });
     }
 

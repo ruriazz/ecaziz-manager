@@ -21,6 +21,8 @@ _*Wassalamualaikum warahmatullahi wabarakatuh.*_
 `;
 
 const app_config = {
-    BASE_URL: 'ecaziz.site',
-    BASE_API: 'http://192.168.6.26:8081'
+    BASE_URL: 'ecaaziz.link',
+    BASE_API: 'https://api.ecaaziz.link',
+    GROOM: 'aziz ruri suparman',
+    BRIDE: 'elsya arystin ningroem'
 };

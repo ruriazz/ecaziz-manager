@@ -25,6 +25,9 @@
                     </tr>
                 </thead>
                 <tbody class="main-table"></tbody>
+                <div class="my-1">
+                    <span id="filtered-info">Undangan tersimpan:</span>
+                </div>
                 <tbody class="filtered-table" style="display: none;"></tbody>
             </table>
             <div class="scroll-loader">

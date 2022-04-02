@@ -21,7 +21,7 @@ class Session {
                 value = encryption.decrypt(value);
                 
                 return Promise.resolve(value);
-            } catch (error) {console.log("error", error);
+            } catch (error) {
                 return Promise.resolve(null);
             }
         };

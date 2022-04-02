@@ -72,8 +72,6 @@ class UndanganIndex {
                     onXentPage = true;
                     if(searchInputUndangan.val().length > 0 && searchInputUndangan.val().trim().length > 0)
                         reset = false;
-                    
-                    console.log("RESET", reset);
 
                     await requestApiUndangan(nextPage, pagination.limit, reset);
                     onXentPage = false;
@@ -83,6 +81,7 @@ class UndanganIndex {
             const submitSearch = async function() {
                 const filteredColumn = $('tbody[class=filtered-table]');
                 const mainColumn = $('tbody[class=main-table]');
+                const resultInfo = $('#filtered-info');
 
                 if(searchInputUndangan.val().length < 1) {
                     filteredColumn.fadeOut('fast', function() {
@@ -90,7 +89,11 @@ class UndanganIndex {
                         mainColumn.fadeIn('fast');
                     });
 
+                    resultInfo.html('Undangan tersimpan:');
+
                     return;
+                } else {
+                    resultInfo.html(`Hasil pencarian untuk <b>"${searchInputUndangan.val()}"</b>:`);
                 }
 
                 let keywords = searchInputUndangan.val().trim();
@@ -129,14 +132,12 @@ class UndanganIndex {
             $('tbody[class=main-table]').fadeOut('fast');
         }
 
+        const api = app.api;
         const $this = this;
         const userData = await app.session.get('user_data');
-        console.log(userData);
+        
         tbody = $(tbody);
         let startIndex = 0;
-
-        // if(tbody.children().length > 0)
-        //     startIndex += 1;
 
         for(let i = startIndex; i < undangans.length; i++) {
             let undangan = undangans[i];
@@ -151,6 +152,31 @@ class UndanganIndex {
             const btnCopyUndangan = child.find('.btn-copy-undangan');
             const btnShareUndangan = child.find('.btn-share-undangan');
             const btnRemoveUndangan = child.find('.btn-remove-undangan');
+
+            const removeUndangan = () => app.showLoader(async() => {
+                const removedResponse = await api.fetch({
+                    path: `/undangan/${undangan.id}`,
+                    method: 'DELETE'
+                });
+
+                if(removedResponse.success) {
+                    $(newColumn.data('child')).remove();
+                    newColumn.remove();
+                } else {
+                    app.showSnackbar({
+                        text: 'an error occurred while deleting data',
+                        timeout: 2500
+                    });
+                }
+
+                app.hideLoader();
+            });
+
+            const showEditForm = () => {
+                app.showSnackbar({
+                    text: 'update feature is under development'
+                });
+            };
             
             newColumn.click(function() {
                 if(newColumn.hasClass('parent')) {
@@ -162,28 +188,94 @@ class UndanganIndex {
                 }
             });
 
+            let snackbarShownEdit = false;
             btnEditUndangan.click(function(evt) {
                 evt.preventDefault();
 
-                console.log('editttt', undangan);
+                if(userData.id !== undangan.created_by.id) {
+                    if(snackbarShownEdit)
+                        return;
+
+                    return app.showSnackbar({
+                        text: `only ${undangan.created_by.name.split(' ')[0]} can update this data`,
+                        onShow: () => {
+                            snackbarShownEdit = true;
+                        },
+                        onHide: () => {
+                            snackbarShownEdit = false;
+                        }
+                    });
+                }
+
+                showEditForm();
             });
 
             btnCopyUndangan.click(function(evt) {
                 evt.preventDefault();
 
-                console.log('copy', undangan);
+                const message = app.buildWhatsappMessage(undangan, false);
+                app.copyTextToClipboard(message, function(success) {
+                    if(success)
+                        return app.showSnackbar({
+                            text: 'tempalate copied.'
+                        });
+
+                    app.showSnackbar({
+                        text: 'failed to copy template.'
+                    });
+                });
             });
 
             btnShareUndangan.click(function(evt) {
                 evt.preventDefault();
 
-                console.log('share', undangan);
+                const message = app.buildWhatsappMessage(undangan);
+                app.openWhatsapp(message, undangan.phone_number != null ? undangan.phone_number : null)
             });
 
-            btnRemoveUndangan.click(function(evt) {
+            let waitingConfim = false;
+            let snackbarShown = false;
+            btnRemoveUndangan.click(async function(evt) {
                 evt.preventDefault();
 
-                console.log('remove', undangan);
+                if(userData.id !== undangan.created_by.id) {
+                    if(snackbarShown)
+                        return;
+
+                    return app.showSnackbar({
+                        text: `only ${undangan.created_by.name.split(' ')[0]} can delete this data`,
+                        onShow: () => {
+                            snackbarShown = true;
+                        },
+                        onHide: () => {
+                            snackbarShown = false;
+                        }
+                    });
+                }
+
+                if(!waitingConfim) {
+                    const el = $(this);
+                    el.addClass('btn-success');
+                    el.removeClass('btn-danger');
+                    if(!snackbarShown)
+                        app.showSnackbar({
+                            text: "click again to continue deleting",
+                            timeout: 2500,
+                            onHide: () => {
+                                snackbarShown = false;
+                            }
+                        });
+
+                    waitingConfim = setTimeout(function() {
+                        el.addClass('btn-danger');
+                        el.removeClass('btn-success');
+
+                        waitingConfim = false;
+                    }, 2500);
+                    return;
+                }
+
+                removeUndangan();
             });
         }
     }
@@ -202,7 +294,7 @@ class UndanganIndex {
         return `
     <tr class="${parentType} parent-column" data-child="#child_${undangan.id}" id="parent-${undangan.id}">
                 <td class="dtr-control" tabindex="0">${undangan.person_name.capitalize()}</td>
-                <td class="sorting_1">${undangan.created_by.id == userData.id ? 'Me' : undangan.created_by.name.capitalize()}</td>
+                <td class="sorting_1">${undangan.created_by.id == userData.id ? 'Me' : undangan.created_by.name.split(' ')[0].capitalize()}</td>
             </tr>
             <tr class="child${parentType == 'odd' ? ' bg-secondary' : ''}" style="display: none;" id="child_${undangan.id}">
                 <td class="child" colspan="2">
@@ -248,7 +340,7 @@ class UndanganIndex {
                         </li>
                         <li data-dtr-index="4" data-dt-row="49" data-dt-column="4">
                             <span class="dtr-title">Url</span>
-                            <span class="dtr-data">: <a href="${undangan.link.replaceAll('BASE_URL', app_config.BASE_URL)}" target="_blank">${undangan.link.replaceAll('BASE_URL', app_config.BASE_URL)}</a></span>
+                            <span class="dtr-data">: <a href="https://${undangan.link.replaceAll('BASE_URL', app_config.BASE_URL)}" target="_blank">${undangan.link.replaceAll('BASE_URL', app_config.BASE_URL)}</a></span>
                         </li>
                         <li data-dtr-index="4" data-dt-row="49" data-dt-column="4">
                             <span class="dtr-title">Data With</span>
