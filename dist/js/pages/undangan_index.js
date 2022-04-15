@@ -124,12 +124,14 @@ class UndanganIndex {
     }
 
     async #loadDataToTable(undangans, tbody, reset = true) {
+        let table = 'main';
         if(tbody == 'tbody[class=filtered-table]') {
             if(reset)
                 $(tbody).children().remove();
 
             $(tbody).fadeIn();
             $('tbody[class=main-table]').fadeOut('fast');
+            table = 'filtered';
         }
 
         const api = app.api;
@@ -142,7 +144,7 @@ class UndanganIndex {
         for(let i = startIndex; i < undangans.length; i++) {
             let undangan = undangans[i];
 
-            const newData = $this.#buildColumn(undangan, i%2 == 0 ?'odd' : 'even', userData);
+            const newData = $this.#buildColumn(undangan, table, userData, i%2 == 0 ?'odd' : 'even');
             tbody.append(newData);
             
             let newColumn = $($(newData)[0]);
@@ -160,8 +162,11 @@ class UndanganIndex {
                 });
 
                 if(removedResponse.success) {
-                    $(newColumn.data('child')).remove();
-                    newColumn.remove();
+                    $(`tr#parent-main-${undangan.id}`).remove();
+                    $(`tr#parent-filtered-${undangan.id}`).remove();
+
+                    $(`tr#child_main_${undangan.id}`).remove();
+                    $(`tr#child_filtered_${undangan.id}`).remove()
                 } else {
                     app.showSnackbar({
                         text: 'an error occurred while deleting data',
@@ -280,7 +285,7 @@ class UndanganIndex {
         }
     }
 
-    #buildColumn(undangan, parentType = 'odd', userData) {
+    #buildColumn(undangan, table, userData, parentType = 'odd') {
         const created_at = new Date(undangan.created_at);
         let createdAtFormated = "";
         createdAtFormated += ('0' + created_at.getDate()).slice(-2);
@@ -292,11 +297,11 @@ class UndanganIndex {
         createdAtFormated += ('0' + created_at.getMinutes()).slice(-2);
 
         return `
-    <tr class="${parentType} parent-column" data-child="#child_${undangan.id}" id="parent-${undangan.id}">
+            <tr class="${parentType} parent-column" data-child="#child_${table}_${undangan.id}" id="parent-${table}-${undangan.id}">
                 <td class="dtr-control" tabindex="0">${undangan.person_name.capitalize()}</td>
                 <td class="sorting_1">${undangan.created_by.id == userData.id ? 'Me' : undangan.created_by.name.split(' ')[0].capitalize()}</td>
             </tr>
-            <tr class="child${parentType == 'odd' ? ' bg-secondary' : ''}" style="display: none;" id="child_${undangan.id}">
+            <tr class="child${parentType == 'odd' ? ' bg-secondary' : ''}" style="display: none;" id="child_${table}_${undangan.id}">
                 <td class="child" colspan="2">
                     <div class="mb-6">
                         <a href="#" class="btn btn-icon btn-primary mx-1 btn-copy-undangan">

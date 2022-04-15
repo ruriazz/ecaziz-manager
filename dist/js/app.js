@@ -67,7 +67,7 @@ class App {
         let messageBody = `_Assalamualaikum warahmatullahi wabarakatuh._\n\nYth.\n:HEAD_RELATION: *:NAME:*\ndi :LOCATION:\n\n_Bismillahirahmanirrahim._\nDengan memohon Ridho dan Rahmat Allah SWT, tanpa mengurangi rasa hormat, perkenankan kami menginformasikan kabar baik kepada :RELATION: perihal acara pernikahan kami.\n\n*${app_config.BRIDE.capitalize()}*\n                 _dan_ \n  *${app_config.GROOM.capitalize()}*\n\nBerikut link untuk info lengkap dari acara kami :\n:URL:\n\nMerupakan suatu kebahagiaan bagi kami apabila :RELATION: dapat memberikan doa dan restu untuk mengiringi niat tulus kami, sehingga pernikahan kami senantiasa dalam ridho dan rahmat Allah Subhanahu Wa Ta'ala. _Aamiin Yaa Rabbal Aalamin._\n\nTerima Kasih,\n_Wassalamualaikum warahmatullahi wabarakatuh._`;
         let name = undangan.person_name.capitalize();
         let location = undangan.person_location.capitalize();
-        let url = undangan.link.replaceAll('BASE_URL', app_config.BASE_URL);
+        let url = undangan.link.replaceAll('BASE_URL', `https://${app_config.BASE_URL}`);
 
         messageBody = messageBody.replaceAll(':HEAD_RELATION:', relationHeader.capitalize());
         messageBody = messageBody.replaceAll(':RELATION:', relationBody);
@@ -379,7 +379,7 @@ class App {
 
         $(`#modal-alert-created_${undangan.id}`).on('hidden.bs.modal', (e) => {
             $(this).remove();
-            if ($this.currentPath == '/undangan') {
+            if ($this.currentPath == '/undangan' || $this.currentPath == '/') {
                 window.location.reload();
             }
         });
